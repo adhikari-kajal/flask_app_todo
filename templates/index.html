@@ -1,0 +1,272 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Todo List</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+
+      .container {
+        margin-bottom: 20px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      table,
+      th,
+      td {
+        border: 1px solid #ddd;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        text-align: center;
+      }
+
+      thead {
+        background-color: #f2f2f2;
+      }
+
+      tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      tr:hover {
+        background-color: #ddd;
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        /* width: 100%; */
+        padding: 10px;
+        margin: 5px 0;
+        box-sizing: border-box;
+      }
+
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+      #deleteButton {
+        background-color: #f44336;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Todo List</h1>
+    <div class="container">
+      <input type="text" id="todoFullName" placeholder="Enter fullname" />
+      <input type="text" id="todoemail" placeholder="Enter Email" />
+
+      <!-- <input type="number" id="todophone" placeholder="Enter Phone Number" /> -->
+      <button id="sumbit">Add</button>
+    </div>
+    <br /><br />
+
+    <table>
+      <!-- <thead> -->
+      <tr>
+        <td>id</td>
+        <td>Name</td>
+        <td>Email</td>
+        <td>Action</td>
+
+        <!-- <td>phone</td> -->
+      </tr>
+      <!-- </thead> -->
+      <tbody id="todoList"></tbody>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      $("#sumbit").on("click", function () {
+        const functionToRun = $(this).html();
+        if (functionToRun == "Add") {
+          addTodo();
+        } else {
+          const id = $(this).attr("data-id");
+          console.log("update", id);
+          updateapi(id);
+        }
+      });
+
+      function addTodo() {
+        var fullname = $("#todoFullName").val();
+        var email = $("#todoemail").val();
+        if (fullname.trim() === "" || email.trim() === "") {
+          alert("Name and Email cannot be blank.");
+          return;
+        }
+        if (
+          !/^[A-Za-z][A-Za-z0-9._-]*@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)
+        ) {
+          alert("Invalid email address.");
+          return;
+        }
+        if (!/^[A-Za-z]/.test(fullname)) {
+          alert("Name should start with a letter.");
+          return;
+        }
+
+        $.ajax({
+          url: "/user/addone",
+          type: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({
+            fullname: fullname,
+            email: email,
+          }),
+          success: function (response) {
+            console.log(response);
+            if (response.status) {
+              getTodos();
+              $("#todoFullName").val("");
+              $("#todoemail").val("");
+            }
+          },
+        });
+        $("#todoInput").val("");
+      }
+
+      function updateapi(id) {
+        var fullname = $("#todoFullName").val();
+        var email = $("#todoemail").val();
+
+        $.ajax({
+          url: "/user/update",
+          type: "PUT",
+          contentType: "application/json",
+          data: JSON.stringify({
+            id: id,
+            fullname: fullname,
+            email: email,
+          }),
+          success: function (response) {
+            console.log(response);
+            if (response.status) {
+              getTodos();
+              $("#todoFullName").val("");
+              $("#todoemail").val("");
+              $("#sumbit").html("Add").removeAttr("data-id");
+            }
+          },
+        });
+        $("#todoInput").val("");
+      }
+
+      // function getTodos() {
+      //   $.ajax({
+      //     url: "/user/getall",
+      //     type: "GET",
+      //     success: function (response) {
+      //       $("#todoList").html("");
+      //       response.payload.forEach(function (todo) {
+      //         $("#todoList").append(
+      //           `<tr><td>${todo.id}</td><td>${todo.fullname}</td><td>${todo.email}</td></tr>`
+      //         );
+      //       });
+      //     },
+      //   });
+      // }
+
+      // Function to populate the table with todos
+      function getTodos() {
+        $.ajax({
+          url: "/user/getall",
+          type: "GET",
+          success: function (response) {
+            $("#todoList").empty(); // Clear existing rows
+            var rowId = 1;
+            response.payload.forEach(function (todo) {
+              var row = `<tr>
+                    <td id="row-id-${todo.id}">${rowId++}</td>
+                    <td id="row-fullname-${todo.id}">${todo.fullname}</td>
+                    <td id="row-email-${todo.id}">${todo.email}</td>
+                    <td>
+                      <button onclick="editTodo(${todo.id})">Edit</button>
+                      <button onclick="deleteTodo(${
+                        todo.id
+                      })" id="deleteButton">Delete</button>
+
+                    </td>
+                  </tr>`;
+              $("#todoList").append(row);
+            });
+          },
+          error: function () {
+            alert("Failed to fetch todos.");
+          },
+        });
+      }
+
+      function deleteTodo(id) {
+        // console.log("Deleting todo with ID:", id);
+
+        $.ajax({
+          url: "/user/delete",
+          type: "DELETE",
+          contentType: "application/json",
+          data: JSON.stringify({
+            id: id,
+          }),
+          success: function (response) {
+            // console.log("Delete response:", response); // Debugging statement
+            if (response?.status) {
+              // console.log("Todo deleted successfully."); // Debugging statement
+
+              // If the deletion is successful, remove the row from the table
+              // $("#todoList input[value='" + id + "']")
+              //   .closest("tr")
+              //   .remove();
+
+              // $("#todoList tr[data-id='" + id + "']").remove();
+              getTodos();
+            } else {
+              console.log("Failed to delete todo:", response.error); // Debugging statement
+
+              alert("Failed to delete todo.");
+            }
+          },
+          error: function (xhr, status, error) {
+            alert("Failed to delete todo. Please try again later.");
+          },
+        });
+      }
+
+      function editTodo(id) {
+        const fullname = $("#row-fullname-" + id).html();
+        const email = $("#row-email-" + id).html();
+
+        $("#todoFullName").val(fullname);
+        $("#todoemail").val(email);
+
+        $("#sumbit").html("Update");
+        $("#sumbit").attr("data-id", id);
+      }
+
+      $(document).ready(function () {
+        getTodos();
+      });
+    </script>
+  </body>
+</html>
