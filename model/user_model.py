@@ -66,26 +66,11 @@ class user_model():
         for key in data:
             qry += f"{key}='{data[key]}',"
         qry = qry[:-1] + f" WHERE id={id}"
-         #UPDATE 	todos SET col=val, col=val WHERE id={id}
-        # return qry
+        
         self.cur.execute(qry)
         if self.cur.rowcount>0:
             return make_response({"message":"User Updated Successfully"}, 201)
         else:
             return make_response({"message":"Nothing to update"}, 202)
 
-    def user_pagination_model(self, limit, page):
-        limit=int(limit)
-        page=int(page)
-        start=(page*limit) - limit
-        qry = f"SELECT * FROM 	todos LIMIT {start}, {limit}"
-        self.cur.execute(qry)
-        result = self.cur.fetchall()
-        if len(result)>0:
-           res = make_response({"payload": result, "page_no":page, "limit":limit}, 200)
-           return res
-             
-          #  return json.dumps(result)
-        else:
-           return make_response ({"message": "no data found"}, 204)
-        
+    
