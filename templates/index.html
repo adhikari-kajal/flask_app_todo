@@ -1,4 +1,3 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -78,22 +77,17 @@
       <input type="text" id="todoFullName" placeholder="Enter fullname" />
       <input type="text" id="todoemail" placeholder="Enter Email" />
 
-      <!-- <input type="number" id="todophone" placeholder="Enter Phone Number" /> -->
       <button id="sumbit">Add</button>
     </div>
     <br /><br />
 
     <table>
-      <!-- <thead> -->
       <tr>
         <td>id</td>
         <td>Name</td>
         <td>Email</td>
         <td>Action</td>
-
-        <!-- <td>phone</td> -->
       </tr>
-      <!-- </thead> -->
       <tbody id="todoList"></tbody>
     </table>
 
@@ -105,7 +99,7 @@
           addTodo();
         } else {
           const id = $(this).attr("data-id");
-          console.log("update", id);
+          // console.log("update", id);
           updateapi(id);
         }
       });
@@ -137,7 +131,6 @@
             email: email,
           }),
           success: function (response) {
-            console.log(response);
             if (response.status) {
               getTodos();
               $("#todoFullName").val("");
@@ -162,7 +155,6 @@
             email: email,
           }),
           success: function (response) {
-            console.log(response);
             if (response.status) {
               getTodos();
               $("#todoFullName").val("");
@@ -174,28 +166,12 @@
         $("#todoInput").val("");
       }
 
-      // function getTodos() {
-      //   $.ajax({
-      //     url: "/user/getall",
-      //     type: "GET",
-      //     success: function (response) {
-      //       $("#todoList").html("");
-      //       response.payload.forEach(function (todo) {
-      //         $("#todoList").append(
-      //           `<tr><td>${todo.id}</td><td>${todo.fullname}</td><td>${todo.email}</td></tr>`
-      //         );
-      //       });
-      //     },
-      //   });
-      // }
-
-      // Function to populate the table with todos
       function getTodos() {
         $.ajax({
           url: "/user/getall",
           type: "GET",
           success: function (response) {
-            $("#todoList").empty(); // Clear existing rows
+            $("#todoList").empty();
             var rowId = 1;
             response.payload.forEach(function (todo) {
               var row = `<tr>
@@ -230,20 +206,11 @@
             id: id,
           }),
           success: function (response) {
-            // console.log("Delete response:", response); // Debugging statement
+            // console.log("Delete response:", response);
             if (response?.status) {
-              // console.log("Todo deleted successfully."); // Debugging statement
-
-              // If the deletion is successful, remove the row from the table
-              // $("#todoList input[value='" + id + "']")
-              //   .closest("tr")
-              //   .remove();
-
-              // $("#todoList tr[data-id='" + id + "']").remove();
               getTodos();
             } else {
-              console.log("Failed to delete todo:", response.error); // Debugging statement
-
+              console.log("Failed to delete todo:", response.error);
               alert("Failed to delete todo.");
             }
           },
